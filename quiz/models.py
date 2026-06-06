@@ -1,7 +1,8 @@
 from django.db import models
 
+
 class Question(models.Model):
-    question_text = models.CharField(max_length=200, verbose_name="題目內容")
+    question_text = models.TextField(verbose_name="題目內容")
 
     DIFFICULTY_CHOICES = [
         ('easy', '易'),
@@ -14,6 +15,12 @@ class Question(models.Model):
         choices=DIFFICULTY_CHOICES,
         default='easy',
         verbose_name="難易度"
+    )
+
+    explanation = models.TextField(
+        blank=True,
+        null=True,
+        verbose_name="解析"
     )
 
     def __str__(self):
