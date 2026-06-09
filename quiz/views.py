@@ -10,10 +10,11 @@ def index(request):
 
 
 def start_quiz(request):
-    """ 初始化測驗 """
+    """ 初始化測驗 (完美融入間隔學習法與防衝突變數優化版) """
     if request.method == "POST":
         num_questions = int(request.POST.get("num_questions", 5))
 
+        # 1. 創立測驗 Session
         if request.user.is_authenticated:
             quiz_session = QuizSession.objects.create(
                 user=request.user,
@@ -27,15 +28,54 @@ def start_quiz(request):
             )
             is_guest = True
 
-        all_questions = list(Question.objects.all())
-        random.shuffle(all_questions)
-        selected_questions = all_questions[:num_questions]
+        # ========================================================
+        # ✨ 間隔學習法 (Spaced Repetition) 核心抽題邏輯
+        # ========================================================
+        selected_questions = []
 
-        for index, q in enumerate(selected_questions):
+        if not is_guest:
+            # 💡 [會員模式]：找出此會員最近一次作答「寫錯」的題目有哪些
+            all_questions = Question.objects.all()
+            wrong_pool = []
+
+            for q in all_questions:
+                last_answer = SessionQuestion.objects.filter(
+                    session__user=request.user,
+                    question=q,
+                    is_answered=True
+                ).order_by('-id').first()
+
+                # 如果這題最後一次被寫錯了，就撈進「優先抽題池」
+                if last_answer and not last_answer.is_correct:
+                    wrong_pool.append(q)
+
+            # 將寫錯的題池打亂，優先塞入本次測驗中
+            random.shuffle(wrong_pool)
+            selected_questions = wrong_pool[:num_questions]
+
+        # 💡 安全防呆：如果選出來的錯題不夠填滿總題數，用其他題目補滿
+        remaining_needed = num_questions - len(selected_questions)
+        if remaining_needed > 0:
+            already_selected_ids = [q.id for q in selected_questions]
+            rest_pool = list(Question.objects.exclude(id__in=already_selected_ids))
+
+            random.shuffle(rest_pool)
+            selected_questions.extend(rest_pool[:remaining_needed])
+
+        # 💡 終極保障：萬一發生意外導致陣列為空，直接抓全部題目做底稿
+        if not selected_questions:
+            selected_questions = list(Question.objects.all())
+
+        # 確保最後出題順序打亂
+        random.shuffle(selected_questions)
+        # ========================================================
+
+        # 2. 寫入 SessionQuestion 資料庫 (✨ 修正：將 index 變數名稱改為 i，防止衝突)
+        for i, q in enumerate(selected_questions):
             SessionQuestion.objects.create(
                 session=quiz_session,
                 question=q,
-                order=index
+                order=i
             )
 
         request.session[f'is_guest_{quiz_session.id}'] = is_guest
@@ -114,7 +154,6 @@ def answer_submit(request, session_question_id):
     return redirect('quiz_play', session_id=quiz_session.id)
 
 
-# ✨ 重點補回：結算頁面函式
 def result(request, session_id):
     """ 結算頁面 """
     quiz_session = get_object_or_404(QuizSession, id=session_id)
@@ -189,11 +228,9 @@ def review_wrong_question(request, question_id):
 
 # ==================== ✨ 個人作答紀錄與歷程追蹤 ====================
 
-# 請對照並替換 views.py 最底部的這個函式：
 @login_required(login_url='/admin/login/')
 def quiz_history(request):
     """ 歷程追蹤：顯示目前登入會員的專屬歷史紀錄 """
-    # 💡 注意這裡的括號包裹範圍，要全部包在 filter 裡面
     sessions = QuizSession.objects.filter(
         user=request.user,
         is_completed=True
@@ -213,4 +250,15 @@ def quiz_history(request):
     return render(request, "quiz/history.html", {
         "history_data": history_data,
         "total_sessions": len(history_data)
+    })
+
+
+def question_all(request):
+    """ 題庫總覽：列出資料庫中所有的題目、選項與解析 (訪客可看) """
+    # 撈出所有題目，並預先載入對應的選項 (優化效能)
+    questions = Question.objects.prefetch_related('choices').all()
+
+    return render(request, "quiz/question_list.html", {
+        "questions": questions,
+        "total_questions": questions.count()
     })

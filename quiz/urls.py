@@ -31,10 +31,7 @@ urlpatterns = [
     path('submit/<int:session_question_id>/', views.answer_submit, name='answer_submit'),
     path('result/<int:session_id>/', views.result, name='result'),
     path('wrong-book/', views.wrong_questions_book, name='wrong_questions_book'),
-
-    # ✨ 新增：錯題本的單題重新挑戰網址
     path('wrong-book/review/<int:question_id>/', views.review_wrong_question, name='review_wrong_question'),
-
-    # ✨ 新增：個人作答紀錄追蹤網址
     path('history/', views.quiz_history, name='quiz_history'),
+    path('questions/', views.question_all, name='question_all'),
 ]

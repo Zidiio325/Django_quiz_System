@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
@@ -5,28 +6,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>資料結構測驗網站</title>
     <style>
+
         body {
+            background-image: url("{% static 'quiz/bg_star.jpg' %}");
+            background-repeat: repeat;
+            background-position: top left;
             font-family: Arial, sans-serif;
             max-width: 600px;
-            margin: 40px auto; /* 微調 margin 留空間給頂部狀態條 */
+            margin: 40px auto;
             text-align: center;
-            background-color: #f4f6f9;
             color: #333;
         }
+
         .card {
-            background: white;
+            background: rgba(255, 255, 255, 0.95);
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             margin-bottom: 20px;
         }
 
-        /* ✨ 新增：頂部會員/訪客狀態條精美樣式 */
+        /* 頂部會員/訪客狀態條樣式 */
         .user-status-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: #e9ecef;
+            background: rgba(233, 236, 239, 0.95);
             padding: 12px 20px;
             border-radius: 8px;
             margin-bottom: 20px;
@@ -48,16 +53,20 @@
             color: white;
             border-color: #007bff;
         }
-        .logout-link {
+
+        /* 登出按鈕樣式 */
+        .logout-btn {
             color: #dc3545;
-            text-decoration: none;
             background: #fff;
             padding: 5px 12px;
             border-radius: 4px;
             border: 1px solid #ced4da;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
             transition: all 0.2s;
         }
-        .logout-link:hover {
+        .logout-btn:hover {
             background: #dc3545;
             color: white;
             border-color: #dc3545;
@@ -75,9 +84,106 @@
             font-weight: bold;
             transition: background 0.2s;
         }
-        .btn-primary { background-color: #007bff; color: white; width: 85%; }
-        .btn-primary:hover { background-color: #0056b3; }
-        .btn-danger { background-color: #dc3545; color: white; width: 85%; }
-        .btn-danger:hover { background-color: #c82333; }
-        .btn-info { background-color: #17a2b8; color: white; width: 85%; }
-        .btn-info:hover { background-
+
+        /* ========================================================
+
+
+         */
+        .btn-start-custom {
+            background-color: #f0e9b4;
+            color: #495057;
+            width: 85%;
+        }
+        .btn-start-custom:hover {
+            background-color: #e5ddaa;
+        }
+
+        /* (2) 歷史錯題本 -> 改為 #f76868 */
+        .btn-wrong-custom {
+            background-color: #edabab;
+            color: white;
+            width: 85%;
+        }
+        .btn-wrong-custom:hover {
+            background-color: #e25656;
+        }
+
+        /* (3) 題庫完整總覽區 -> 改為 #94938b */
+        .btn-all-custom {
+            background-color: #94938b;
+            color: white;
+            width: 85%;
+        }
+        .btn-all-custom:hover {
+            background-color: #818078;
+        }
+
+        /* (4) 個人紀錄按鈕 -> 維持原本的藍綠色 info 樣式 */
+        .btn-info {
+            background-color: #17a2b8;
+            color: white;
+            width: 85%;
+        }
+        .btn-info:hover {
+            background-color: #138496;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="user-status-bar">
+        {% if user.is_authenticated %}
+            <span style="color: #28a745;">👤 歡迎，會員：{{ user.username }} (紀錄將永久儲存)</span>
+            <form action="/admin/logout/?next=/" method="POST" style="display: inline; margin: 0;">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">🚪 登出系統</button>
+            </form>
+        {% else %}
+            <span style="color: #6c757d;">👀 目前身分：訪客模式 (作答不留歷史紀錄)</span>
+            <a href="/admin/login/?next=/" class="login-link">🔑 會員登入</a>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <h1>資料結構主題測驗網站</h1>
+        <h2>第6章 堆疊(Stack)與佇列(Queue)</h2>
+
+        <p>目前題庫總計：<strong>14</strong> 題選擇題</p>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+        <form action="{% url 'start_quiz' %}" method="POST">
+            {% csrf_token %}
+
+            <label for="num_questions" style="font-size: 18px; font-weight: bold;">請選擇本次測驗題數：</label>
+            <br>
+            <select name="num_questions" id="num_questions">
+                <option value="5">📄 5 題（快速練習）</option>
+                <option value="10">📄 10 題（標準測驗）</option>
+                <option value="14">🔥 挑戰全部題目</option>
+            </select>
+
+            <br><br>
+            <button type="submit" class="btn-start-custom">🚀 開始隨機測驗</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top: 0; color: #495057;">📊 學習工具專區</h3>
+
+        <a href="{% url 'wrong_questions_book' %}" style="text-decoration: none;">
+            <button type="button" class="btn-wrong-custom">📕 歷史錯題本專區</button>
+        </a>
+
+        <a href="{% url 'quiz_history' %}" style="text-decoration: none;">
+            <button type="button" class="btn-info">📈 個人作答紀錄與歷程追蹤</button>
+        </a>
+
+        <a href="{% url 'question_all' %}" style="text-decoration: none;">
+            <button type="button" class="btn-all-custom">📚 題庫完整總覽區</button>
+        </a>
+
+    </div>
+
+</body>
+</html>

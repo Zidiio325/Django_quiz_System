@@ -73,9 +73,22 @@
             font-weight: bold;
             border-color: #c3e6cb;
         }
+
+        /* ✨ 新增：精美藍色題目解析卡片樣式 */
+        .explanation-box {
+            background-color: #e8f4fd;
+            color: #1d6fa5;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 14px;
+            border-left: 4px solid #17a2b8;
+            line-height: 1.6;
+        }
+
         .review-btn {
             display: inline-block;
-            margin-top: 10px;
+            margin-top: 15px; /* 稍微拉開一點距離，排版更好看 */
             background-color: #dc3545;
             color: white;
             padding: 8px 15px;
@@ -133,6 +146,13 @@
                         </div>
                     {% endfor %}
                 </div>
+
+                {% if question.explanation %}
+                    <div class="explanation-box">
+                        <strong>💡 題目解析：</strong><br>
+                        {{ question.explanation|linebreaksbr }}
+                    </div>
+                {% endif %}
 
                 <a href="{% url 'review_wrong_question' question.id %}" class="review-btn">🎯 單題重新挑戰</a>
             </div>

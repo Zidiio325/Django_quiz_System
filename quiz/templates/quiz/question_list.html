@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>📚 題庫總覽</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            margin: 0;
+            padding: 30px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #dee2e6;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        h1 { margin: 0; color: #495057; }
+        .back-btn {
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+        .back-btn:hover { background-color: #5a6268; }
+        .stats { color: #6c757d; font-size: 16px; }
+
+        /* 題目卡片設計 */
+        .question-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 5px solid #6c757d;
+        }
+        /* 根據難易度改變卡片左邊條顏色 */
+        .border-easy { border-left-color: #28a745; }
+        .border-medium { border-left-color: #ffc107; }
+        .border-hard { border-left-color: #dc3545; }
+
+        .question-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* 難易度標籤 */
+        .badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: white;
+            font-weight: bold;
+        }
+        .bg-easy { background-color: #28a745; }
+        .bg-medium { background-color: #ffc107; color: #212529; }
+        .bg-hard { background-color: #dc3545; }
+
+        /* 選項清單 */
+        .choice-list {
+            list-style: none;
+            padding-left: 0;
+            margin-bottom: 15px;
+        }
+        .choice-item {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 4px;
+            background-color: #f1f3f5;
+        }
+        .choice-correct {
+            background-color: #d4edda;
+            color: #155724;
+            font-weight: bold;
+            border-left: 3px solid #28a745;
+        }
+
+        /* 解析區塊 */
+        .explanation-box {
+            background-color: #e8f4fd;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 12px 15px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .explanation-title {
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1>📚 題庫完整總覽</h1>
+            <div class="stats">目前系統內總計：<strong>{{ total_questions }}</strong> 題選擇題</div>
+        </div>
+        <a href="{% url 'index' %}" class="back-btn">🏠 回到首頁</a>
+    </div>
+
+    {% for q in questions %}
+        <div class="question-card
+            {% if q.difficulty == 'easy' %}border-easy
+            {% elif q.difficulty == 'medium' border-medium
+            {% else %}border-hard{% endif %}">
+
+            <div class="question-title">
+                <span>第 {{ forloop.counter }} 題. {{ q.question_text }}</span>
+                {% if q.difficulty == 'easy' %}
+                    <span class="badge bg-easy">易</span>
+                {% elif q.difficulty == 'medium' %}
+                    <span class="badge bg-medium">中</span>
+                {% else %}
+                    <span class="badge bg-hard">難</span>
+                {% endif %}
+            </div>
+
+            <ul class="choice-list">
+                {% for choice in q.choices.all %}
+                    <li class="choice-item {% if choice.is_correct %}choice-correct{% endif %}">
+                        {% if choice.is_correct %}✓ {% endif %}{{ choice.choice_text }}
+                    </li>
+                {% endfor %}
+            </ul>
+
+            {% if q.explanation %}
+                <div class="explanation-box">
+                    <div class="explanation-title">💡 題目解析：</div>
+                    <div>{{ q.explanation }}</div>
+                </div>
+            {% endif %}
+        </div>
+    {% empty %}
+        <p style="text-align: center; color: #6c757d; margin-top: 50px;">目前題庫中還沒有任何題目，請至後台管理系統新增！</p>
+    {% endfor %}
+</div>
+
+</body>
+</html>
