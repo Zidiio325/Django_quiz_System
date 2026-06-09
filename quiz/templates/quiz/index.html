@@ -1,19 +1,68 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>資料結構測驗網站</title>
+    <style>
+        /* 幫你們加一點點簡單好看的排版，報告時畫面更精緻 */
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            text-align: center;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        select, button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            margin: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
 
-    <h1>資料結構主題測驗網站</h1>
-    <h2>第6章 堆疊(Stack)與佇列(Queue)</h2>
+    <div class="card">
+        <h1>資料結構主題測驗網站</h1>
+        <h2>第6章 堆疊(Stack)與佇列(Queue)</h2>
 
-    <p>共14題選擇題</p>
+        <p>目前題庫總計：<strong>{{ total_db_questions }}</strong> 題選擇題</p>
 
-    <a href="/quiz/">
-        <button>開始測驗</button>
-    </a>
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+        <form action="{% url 'start_quiz' %}" method="POST">
+            {% csrf_token %}
+
+            <label for="num_questions" style="font-size: 18px; font-weight: bold;">請選擇本次測驗題數：</label>
+            <br>
+            <select name="num_questions" id="num_questions">
+                <option value="5">📄 5 題（快速練習）</option>
+                <option value="10">📄 10 題（標準測驗）</option>
+                <option value="{{ total_db_questions }}">🔥 挑戰全部題目</option>
+            </select>
+
+            <br><br>
+            <button type="submit">🚀 開始隨機測驗</button>
+        </form>
+    </div>
 
 </body>
 </html>

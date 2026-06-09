@@ -1,42 +1,118 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>堆疊與佇列測驗</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 650px;
+            margin: 40px auto;
+            background-color: #f4f6f9;
+            color: #333;
+            padding: 0 20px;
+        }
+        .quiz-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .progress-bar {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        /* 難易度標籤顏色 */
+        .badge-easy { background-color: #28a745; }
+        .badge-medium { background-color: #ffc107; color: #212529; }
+        .badge-hard { background-color: #dc3545; }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.5;
+            margin: 15px 0 25px 0;
+        }
+        .choice-option {
+            display: block;
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .choice-option:hover {
+            background: #e9ecef;
+            border-color: #ced4da;
+        }
+        .choice-option input {
+            margin-right: 10px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
 
-<h1>堆疊與佇列測驗</h1>
+    <div class="quiz-container">
+        <div class="progress-bar">
+            <span>📊 目前進度：第 <strong>{{ current_num }}</strong> / {{ total_count }} 題</span>
 
-<form method="post" action="/result/">
-    {% csrf_token %}
+            {% if question.difficulty == 'easy' %}
+                <span class="badge badge-easy">易</span>
+            {% elif question.difficulty == 'medium' %}
+                <span class="badge badge-medium">中</span>
+            {% elif question.difficulty == 'hard' %}
+                <span class="badge badge-hard">難</span>
+            {% endif %}
+        </div>
 
-    {% for question in questions %}
+        <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
 
-        <hr>
+        <form method="POST" action="{% url 'answer_submit' session_question.id %}">
+            {% csrf_token %}
 
-        <h3>
-            第 {{ forloop.counter }} 題：{{ question.question_text }}
-        </h3>
+            <div class="question-text">
+                {{ question.question_text }}
+            </div>
 
-    {% for letter, choice in question.labeled_choices %}
-        <label>
-            <input type="radio"
-                   name="question_{{ question.id }}"
-                   value="{{ choice.id }}"
-                   {% if forloop.first %}required{% endif %}>
+            {% for letter, choice in labeled_choices %}
+                <label class="choice-option">
+                    <input type="radio" name="choice" value="{{ choice.id }}" required>
+                    <strong>({{ letter }})</strong> {{ choice.choice_text }}
+                </label>
+            {% endfor %}
 
-            ({{ letter }}) {{ choice.choice_text }}
-        </label>
-        <br>
-    {% endfor %}
-
-    {% endfor %}
-
-    <br>
-
-    <button type="submit">交卷</button>
-</form>
+            <button type="submit">確認提交答案 ➔</button>
+        </form>
+    </div>
 
 </body>
 </html>

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>答題結果回饋</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 650px;
+            margin: 40px auto;
+            background-color: #f4f6f9;
+            color: #333;
+            padding: 0 20px;
+        }
+        .feedback-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .result-status {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        /* 答對與答錯的樣式 */
+        .status-correct {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-wrong {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .question-box {
+            text-align: left;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 5px solid #6c757d;
+            margin: 20px 0;
+        }
+        .answer-info {
+            text-align: left;
+            margin: 15px 0;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        .explanation-box {
+            text-align: left;
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .explanation-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+        .next-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 25px;
+            text-decoration: none;
+        }
+        .next-btn:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="feedback-container">
+
+        {% if is_correct %}
+            <div class="result-status status-correct">
+                ⭕ 答對了！太棒了！
+            </div>
+        {% else %}
+            <div class="result-status status-wrong">
+                ❌ 答錯了！沒關係再接再厲！
+                <div style="font-size: 14px; margin-top: 5px; font-weight: normal; color: #721c24;">
+                    💡 根據間隔學習法，此題將會在稍後重新出現。
+                </div>
+            </div>
+        {% endif %}
+
+        <div class="question-box">
+            <strong>題目：</strong>{{ question.question_text }}
+        </div>
+
+        <div class="answer-info">
+            📌 你的答案：<span style="font-weight: bold; color: {% if is_correct %}#155724{% else %}#dc3545{% endif %};">{{ selected_choice.choice_text }}</span>
+            <br>
+            ✅ 正確答案：<span style="font-weight: bold; color: #155724;">{{ correct_choice.choice_text }}</span>
+        </div>
+
+        {% if question.explanation %}
+            <div class="explanation-box">
+                <div class="explanation-title">📝 題目解析：</div>
+                <div style="line-height: 1.5;">{{ question.explanation|linebreaksbr }}</div>
+            </div>
+        {% else %}
+            <div class="explanation-box" style="background: #e2e3e5; border-color: #d6d8db; color: #383d41;">
+                <div class="explanation-title">📝 題目解析：</div>
+                <div>此題目暫無提供詳細解析。</div>
+            </div>
+        {% endif %}
+
+        <a href="{% url 'quiz_play' quiz_session.id %}" class="next-btn">
+            前往下一題 ➔
+        </a>
+
+    </div>
+
+</body>
+</html>
