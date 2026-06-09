@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>個人作答紀錄與歷程追蹤</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 750px;
+            margin: 40px auto;
+            background-color: #f4f6f9;
+            color: #333;
+            padding: 0 20px;
+        }
+        .history-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #dee2e6;
+        }
+        th {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .accuracy-badge {
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .btn-home {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="history-container">
+        <h1 style="text-align: center; color: #17a2b8;">📈 個人作答紀錄與歷程追蹤</h1>
+        <p style="text-align: center; color: #666;">這裡幫你追蹤了你在本系統中所有的歷史測驗表現</p>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+        <h3>總計參與測驗場次： <span style="color: #17a2b8;">{{ total_sessions }}</span> 場</h3>
+
+        {% if not history_data %}
+            <div style="text-align: center; padding: 40px; color: #6c757d;">
+                📭 目前還沒有任何完成的測驗紀錄，快去首頁考一場吧！
+            </div>
+        {% else %}
+            <table>
+                <thead>
+                    <tr>
+                        <th>測驗場次</th>
+                        <th>作答時間</th>
+                        <th>測驗題數</th>
+                        <th>答對題數</th>
+                        <th>得分勝率 (答對率)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for data in history_data %}
+                        <tr>
+                            <td>#{{ data.id }}</td>
+                            <td>{{ data.date|date:"Y-m-d H:i" }}</td>
+                            <td>{{ data.requested }} 題</td>
+                            <td style="color: #28a745; font-weight: bold;">{{ data.score }} 題</td>
+                            <td>
+                                <span class="accuracy-badge" style="background-color: {% if data.accuracy >= 80 %}#d4edda; color: #155724;{% elif data.accuracy >= 60 %}#fff3cd; color: #856404;{% else %}#f8d7da; color: #721c24;{% endif %}">
+                                    {{ data.accuracy }}%
+                                </span>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+
+        <a href="/" class="btn-home">🏠 返回首頁</a>
+    </div>
+
+</body>
+</html>

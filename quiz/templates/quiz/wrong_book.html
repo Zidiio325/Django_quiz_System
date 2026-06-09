@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>歷史錯題本專區</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 700px;
+            margin: 40px auto;
+            background-color:#aec6eb;
+            color: #333;
+            padding: 0 20px;
+        }
+        .book-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .book-title {
+            text-align: center;
+            color: #dc3545;
+            margin-bottom: 5px;
+        }
+        .wrong-card {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-left: 5px solid #dc3545;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .badge {
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            background-color: #6c757d;
+        }
+        .explanation-box {
+            background: #fff3cd;
+            border: 1px solid #ffeeba;
+            color: #856404;
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+        .btn-home {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            background-color: #6c757d;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 30px;
+        }
+        .btn-home:hover {
+            background-color: #5a6268;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="book-container">
+        <h1 class="book-title">歷史錯題本專區</h1>
+        <p style="text-align: center; color: #666;">這裡記錄了你歷次測驗中所有答錯過的題目，請多加複習！</p>
+
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+
+        <h3>目前收錄錯題： <span style="color: #dc3545;">{{ total_wrong }}</span> 題</h3>
+
+        {% if not wrong_questions %}
+            <div style="text-align: center; padding: 40px; color: #28a745; font-size: 18px; font-weight: bold;">
+                好棒!!目前沒有任何錯題紀錄！
+            </div>
+        {% else %}
+            {% for question in wrong_questions %}
+                <div class="wrong-card">
+                    <div style="margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-weight: bold; color: #666;">錯題 {{ forloop.counter }}</span>
+                        <a href="{% url 'review_wrong_question' question.id %}" style="text-decoration: none;">
+                            <button type="button" style="padding: 6px 12px; font-size: 12px; background-color: #007bff; color: white; border-radius: 4px; border:none; cursor:pointer; font-weight:bold;">⚡ 重新挑戰</button>
+                        </a>
+                    </div>
+
+                    <div style="font-size: 16px; font-weight: bold; line-height: 1.5; margin-bottom: 12px;">
+                        {{ question.question_text }}
+                    </div>
+
+                    <div style="font-size: 14px; color: #155724; background-color: #d4edda; padding: 10px; border-radius: 6px; font-weight: bold;">
+                        ✅ 正確答案：
+                        {% for choice in question.choices.all %}
+                            {% if choice.is_correct %}
+                                {{ choice.choice_text }}
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+
+                    {% if question.explanation %}
+                        <div class="explanation-box">
+                            <strong>📝 題目解析：</strong><br>
+                            {{ question.explanation|linebreaksbr }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <a href="/" class="btn-home">🏠 返回首頁</a>
+    </div>
+
+</body>
+</html>

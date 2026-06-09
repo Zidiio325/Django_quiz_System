@@ -4,32 +4,24 @@ import random
 
 
 def index(request):
-    """ 首頁：讓學生選擇要考 5 題、10 題、還是挑戰全部 """
-    # 順便把題庫總數傳過去，讓前端網頁可以顯示
-    total_db_questions = Question.objects.count()
-    return render(request, "quiz/index.html", {
-        "total_db_questions": total_db_questions
-    })
+    """ 首頁 """
+    return render(request, "quiz/index.html")
 
 
 def start_quiz(request):
-    """ 核心轉運站：初始化一場全新的測驗 """
+    """ 初始化測驗：隨機抽出 5 或 10 題 """
     if request.method == "POST":
-        # 1. 獲取學生選擇的題數 (預設 5 題)
         num_questions = int(request.POST.get("num_questions", 5))
 
-        # 2. 建立一場新的測驗局
         quiz_session = QuizSession.objects.create(
             user=request.user if request.user.is_authenticated else None,
             total_questions_requested=num_questions
         )
 
-        # 3. 從資料庫隨機抽出指定數量的題目
         all_questions = list(Question.objects.all())
         random.shuffle(all_questions)
         selected_questions = all_questions[:num_questions]
 
-        # 4. 把這些題目塞進出題順序隊伍裡
         for index, q in enumerate(selected_questions):
             SessionQuestion.objects.create(
                 session=quiz_session,
@@ -37,40 +29,30 @@ def start_quiz(request):
                 order=index
             )
 
-        # 5. 初始化完成，直接導向「答題頁面」
         return redirect('quiz_play', session_id=quiz_session.id)
-
     return redirect('index')
 
 
 def quiz_play(request, session_id):
-    """ 答題頁面：一次只秀出「目前該寫的那一題」 """
+    """ 答題頁面 """
     quiz_session = get_object_or_404(QuizSession, id=session_id)
 
-    # 如果這場測驗已經被標記為完成，直接跳去看總分
     if quiz_session.is_completed:
         return redirect('result', session_id=quiz_session.id)
 
-    # 找出這場測驗中，目前「還沒作答」的題目的第一題
     current_session_q = quiz_session.session_questions.filter(is_answered=False).first()
 
-    # 如果已經沒有下一題了，代表考試結束！
     if not current_session_q:
         quiz_session.is_completed = True
         quiz_session.save()
         return redirect('result', session_id=quiz_session.id)
 
-    # 拿到真正的題目物件
     question = current_session_q.question
-
-    # 把選項打散並加上 A, B, C, D 標籤
     choices = list(question.choices.all())
     random.shuffle(choices)
     letters = [chr(65 + i) for i in range(len(choices))]
     labeled_choices = list(zip(letters, choices))
 
-    # 計算目前進度 (例如：第 3 題 / 總共 5 題)
-    # 注意：因為錯題會加在隊伍後面，所以「實際總題數」可能會變多
     total_current_count = quiz_session.session_questions.count()
     current_num = quiz_session.session_questions.filter(is_answered=True).count() + 1
 
@@ -85,9 +67,10 @@ def quiz_play(request, session_id):
 
 
 def answer_submit(request, session_question_id):
-    """ 接收答案核心：判對對錯、即時回饋、觸發「間隔學習法（錯題重考）」 """
+    """ 接收答案：如果是從錯題本進來作答，答對後就會從錯題本中消失 """
     session_q = get_object_or_404(SessionQuestion, id=session_question_id)
     quiz_session = session_q.session
+    is_from_wrong_book = request.POST.get("from_wrong_book") == "true"
 
     if request.method == "POST":
         selected_choice_id = request.POST.get("choice")
@@ -95,50 +78,107 @@ def answer_submit(request, session_question_id):
         if selected_choice_id:
             selected_choice = get_object_or_404(Choice, id=selected_choice_id)
             correct_choice = session_q.question.choices.filter(is_correct=True).first()
-
-            # 判斷是否答對
             is_correct = selected_choice.is_correct
 
-            # 更新此題的作答狀態
             session_q.is_answered = True
             session_q.is_correct = is_correct
             session_q.save()
 
             if is_correct:
-                # 答對了：加分！
                 quiz_session.score += 1
                 quiz_session.save()
-            else:
-                # 答錯了！【✨間隔學習法發動✨】
-                # 找出目前這場測驗排隊的最後一個順序是多少
-                last_order = quiz_session.session_questions.count()
-                # 複製一模一樣的題目，排到隊伍的最末端（之後重複出現）
-                SessionQuestion.objects.create(
-                    session=quiz_session,
-                    question=session_q.question,
-                    order=last_order
-                )
 
-            # 為了達到「即時回饋」：先停在一個小頁面看這題對不對、看解析，點「下一題」才繼續
             return render(request, "quiz/feedback.html", {
                 "quiz_session": quiz_session,
                 "question": session_q.question,
                 "selected_choice": selected_choice,
                 "correct_choice": correct_choice,
                 "is_correct": is_correct,
+                "is_from_wrong_book": is_from_wrong_book,
             })
 
     return redirect('quiz_play', session_id=quiz_session.id)
 
 
 def result(request, session_id):
-    """ 結算頁面：秀出這場測驗的最終成績與歷程紀錄 """
+    """ 結算頁面 """
     quiz_session = get_object_or_404(QuizSession, id=session_id)
-
-    # 撈出這場測驗裡「所有寫過的紀錄」（包含一開始的題和後面因為做錯而重複出現的題）
     all_session_questions = quiz_session.session_questions.all()
 
     return render(request, "quiz/result.html", {
         "quiz_session": quiz_session,
         "all_session_questions": all_session_questions,
+    })
+
+
+# ==================== ✨ 歷史錯題本（答對自動消失機制） ✨ ====================
+
+def wrong_questions_book(request):
+    """ 錯題本專區：撈出所有『最後一次作答為錯誤』的題目，答對了就不會顯示在這 """
+    all_questions = Question.objects.all()
+    wrong_questions = []
+
+    for q in all_questions:
+        # 找這題在系統裡最後一次被回答的紀錄
+        last_answer = SessionQuestion.objects.filter(question=q, is_answered=True).order_by('-id').first()
+        # 如果最後一次回答是錯的，代表這題還沒被複習成功，放進錯題本
+        if last_answer and not last_answer.is_correct:
+            wrong_questions.append(q)
+
+    return render(request, "quiz/wrong_book.html", {
+        "wrong_questions": wrong_questions,
+        "total_wrong": len(wrong_questions)
+    })
+
+
+def review_wrong_question(request, question_id):
+    """ 在錯題本點擊題目進行「單題重新挑戰」 """
+    question = get_object_or_404(Question, id=question_id)
+
+    # 臨時建立一個獨立的模擬 session 來跑單題作答流程
+    dummy_session = QuizSession.objects.create(total_questions_requested=1, is_completed=False)
+    session_q = SessionQuestion.objects.create(
+        session=dummy_session,
+        question=question,
+        order=0
+    )
+
+    choices = list(question.choices.all())
+    random.shuffle(choices)
+    letters = [chr(65 + i) for i in range(len(choices))]
+    labeled_choices = list(zip(letters, choices))
+
+    return render(request, "quiz/quiz.html", {
+        "quiz_session": dummy_session,
+        "session_question": session_q,
+        "question": question,
+        "labeled_choices": labeled_choices,
+        "current_num": 1,
+        "total_count": 1,
+        "from_wrong_book": True,  # 標記是從錯題本來的
+    })
+
+
+# ==================== ✨ 個人作答紀錄與歷程追蹤 ✨ ====================
+
+def quiz_history(request):
+    """ 歷程追蹤：顯示使用者在每場測驗的得分、題數、以及作答時間 """
+    # 撈出所有的測驗場次
+    sessions = QuizSession.objects.filter(is_completed=True).order_by('-created_at')
+
+    history_data = []
+    for s in sessions:
+        # 計算答對率
+        accuracy = int((s.score / s.total_questions_requested) * 100) if s.total_questions_requested > 0 else 0
+        history_data.append({
+            "id": s.id,
+            "date": s.created_at,
+            "requested": s.total_questions_requested,
+            "score": s.score,
+            "accuracy": accuracy
+        })
+
+    return render(request, "quiz/history.html", {
+        "history_data": history_data,
+        "total_sessions": len(history_data)
     })

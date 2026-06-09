@@ -5,13 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>資料結構測驗網站</title>
     <style>
-        /* 幫你們加一點點簡單好看的排版，報告時畫面更精緻 */
         body {
             font-family: Arial, sans-serif;
             max-width: 600px;
             margin: 50px auto;
             text-align: center;
-            background-color: #f9f9f9;
+            background-color: #f4f6f9;
             color: #333;
         }
         .card {
@@ -19,6 +18,7 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
         }
         select, button {
             padding: 10px 20px;
@@ -27,15 +27,17 @@
             margin: 10px;
         }
         button {
-            background-color: #007bff;
-            color: white;
             border: none;
             cursor: pointer;
             font-weight: bold;
+            transition: background 0.2s;
         }
-        button:hover {
-            background-color: #0056b3;
-        }
+        .btn-primary { background-color: #007bff; color: white; width: 85%; }
+        .btn-primary:hover { background-color: #0056b3; }
+        .btn-danger { background-color: #dc3545; color: white; width: 85%; }
+        .btn-danger:hover { background-color: #c82333; }
+        .btn-info { background-color: #17a2b8; color: white; width: 85%; }
+        .btn-info:hover { background-color: #138496; }
     </style>
 </head>
 <body>
@@ -44,7 +46,7 @@
         <h1>資料結構主題測驗網站</h1>
         <h2>第6章 堆疊(Stack)與佇列(Queue)</h2>
 
-        <p>目前題庫總計：<strong>{{ total_db_questions }}</strong> 題選擇題</p>
+        <p>目前題庫總計：<strong>14</strong> 題選擇題</p>
 
         <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
 
@@ -56,12 +58,24 @@
             <select name="num_questions" id="num_questions">
                 <option value="5">📄 5 題（快速練習）</option>
                 <option value="10">📄 10 題（標準測驗）</option>
-                <option value="{{ total_db_questions }}">🔥 挑戰全部題目</option>
+                <option value="14">🔥 挑戰全部題目</option>
             </select>
 
             <br><br>
-            <button type="submit">🚀 開始隨機測驗</button>
+            <button type="submit" class="btn-primary">🚀 開始隨機測驗</button>
         </form>
+    </div>
+
+    <div class="card">
+        <h3 style="margin-top: 0; color: #495057;">📊 學習工具專區</h3>
+
+        <a href="{% url 'wrong_questions_book' %}" style="text-decoration: none;">
+            <button type="button" class="btn-danger">📕 歷史錯題本專區</button>
+        </a>
+
+        <a href="{% url 'quiz_history' %}" style="text-decoration: none;">
+            <button type="button" class="btn-info">📈 個人作答紀錄與歷程追蹤</button>
+        </a>
     </div>
 
 </body>

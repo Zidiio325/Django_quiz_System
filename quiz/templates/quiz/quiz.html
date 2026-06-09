@@ -25,6 +25,7 @@
             margin-bottom: 10px;
             display: flex;
             justify-content: space-between;
+            align-items: center; /* 讓計時器跟進度條置中對齊 */
         }
         .badge {
             padding: 4px 8px;
@@ -37,6 +38,28 @@
         .badge-easy { background-color: #28a745; }
         .badge-medium { background-color: #ffc107; color: #212529; }
         .badge-hard { background-color: #dc3545; }
+
+        .timer-box {
+            background-color: #cdfff7;
+            border: 1px solid #d1d1cd;
+            color: #0f0f0f;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .timer-danger {
+            background-color: #f8d7da !important;
+            border-color: #f5c6cb !important;
+            color: #721c24 !important;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
 
         .question-text {
             font-size: 18px;
@@ -83,21 +106,31 @@
 
     <div class="quiz-container">
         <div class="progress-bar">
-            <span>📊 目前進度：第 <strong>{{ current_num }}</strong> / {{ total_count }} 題</span>
+            <div>
+                <span>📊 目前進度：第 <strong>{{ current_num }}</strong> / {{ total_count }} 題</span>
 
-            {% if question.difficulty == 'easy' %}
-                <span class="badge badge-easy">易</span>
-            {% elif question.difficulty == 'medium' %}
-                <span class="badge badge-medium">中</span>
-            {% elif question.difficulty == 'hard' %}
-                <span class="badge badge-hard">難</span>
-            {% endif %}
+                {% if question.difficulty == 'E' or question.difficulty == 'easy' %}
+                    <span class="badge badge-easy">易</span>
+                {% elif question.difficulty == 'M' or question.difficulty == 'medium' %}
+                    <span class="badge badge-medium">中</span>
+                {% elif question.difficulty == 'H' or question.difficulty == 'hard' %}
+                    <span class="badge badge-hard">難</span>
+                {% endif %}
+            </div>
+
+            <div id="timerDisplay" class="timer-box">
+                ⏱️剩餘時間：<span id="seconds">30</span> 秒
+            </div>
         </div>
 
         <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
 
-        <form method="POST" action="{% url 'answer_submit' session_question.id %}">
+        <form id="quizForm" method="POST" action="{% url 'answer_submit' session_question.id %}">
             {% csrf_token %}
+
+            {% if from_wrong_book %}
+                <input type="hidden" name="from_wrong_book" value="true">
+            {% endif %}
 
             <div class="question-text">
                 {{ question.question_text }}
@@ -105,7 +138,7 @@
 
             {% for letter, choice in labeled_choices %}
                 <label class="choice-option">
-                    <input type="radio" name="choice" value="{{ choice.id }}" required>
+                    <input type="radio" name="choice" value="{{ choice.id }}">
                     <strong>({{ letter }})</strong> {{ choice.choice_text }}
                 </label>
             {% endfor %}
@@ -113,6 +146,42 @@
             <button type="submit">確認提交答案 ➔</button>
         </form>
     </div>
+
+    <script>
+        let timeLeft = 30; // 倒數 30 秒
+        const secondsSpan = document.getElementById('seconds');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const quizForm = document.getElementById('quizForm');
+
+        const countdown = setInterval(function() {
+            timeLeft--;
+            secondsSpan.textContent = timeLeft;
+
+            // 計時器外框變紅並開始閃爍
+            if (timeLeft <= 10) {
+                timerDisplay.classList.add('timer-danger');
+            }
+
+            // 當時間歸零時
+            if (timeLeft <= 0) {
+                clearInterval(countdown);
+
+
+                const checkedRadio = quizForm.querySelector('input[name="choice"]:checked');
+
+                if (!checkedRadio) {
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'choice';
+                    hiddenInput.value = '';
+                    quizForm.appendChild(hiddenInput);
+                }
+
+                alert("30 秒時間到！系統已自動幫您提交答案。");
+                quizForm.submit(); // 強制送出表單
+            }
+        }, 1000);
+    </script>
 
 </body>
 </html>
