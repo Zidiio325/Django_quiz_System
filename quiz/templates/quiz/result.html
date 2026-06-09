@@ -1,0 +1,30 @@
+<h1>測驗結果</h1>
+
+<h2>你的正確率：{{ score }}／{{ total }}</h2>
+
+<hr>
+
+{% for item in results %}
+
+<div style="margin-bottom:20px; padding:10px; border:1px solid #ccc;">
+
+    <h3>第 {{ forloop.counter }} 題</h3>
+
+    <p><b>題目：</b>{{ item.question }}</p>
+
+    {% if item.is_correct %}
+        <p style="color:green;">✔ 正確</p>
+    {% else %}
+        <p style="color:red;">✘ 錯誤</p>
+
+        <p><b>你的答案：</b>{{ item.user_answer }}</p>
+        <p><b>正確答案：</b>{{ item.correct_answer }}</p>
+    {% endif %}
+
+    <p><b>解析：</b>{{ item.explanation }}</p>
+
+</div>
+
+{% endfor %}
+
+<a href="/quiz/">回首頁</a>

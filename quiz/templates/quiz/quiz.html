@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>堆疊與佇列測驗</title>
+</head>
+<body>
+
+<h1>堆疊與佇列測驗</h1>
+
+<form method="post" action="/result/">
+    {% csrf_token %}
+
+    {% for question in questions %}
+
+        <hr>
+
+        <h3>
+            第 {{ forloop.counter }} 題：{{ question.question_text }}
+        </h3>
+
+    {% for letter, choice in question.labeled_choices %}
+        <label>
+            <input type="radio"
+                   name="question_{{ question.id }}"
+                   value="{{ choice.id }}"
+                   {% if forloop.first %}required{% endif %}>
+
+            ({{ letter }}) {{ choice.choice_text }}
+        </label>
+        <br>
+    {% endfor %}
+
+    {% endfor %}
+
+    <br>
+
+    <button type="submit">交卷</button>
+</form>
+
+</body>
+</html>
