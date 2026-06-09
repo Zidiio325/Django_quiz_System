@@ -98,7 +98,7 @@
             background-color: #e5ddaa;
         }
 
-        /* (2) 歷史錯題本 -> 改為 #f76868 */
+
         .btn-wrong-custom {
             background-color: #edabab;
             color: white;
@@ -108,7 +108,7 @@
             background-color: #e25656;
         }
 
-        /* (3) 題庫完整總覽區 -> 改為 #94938b */
+
         .btn-all-custom {
             background-color: #94938b;
             color: white;
@@ -118,7 +118,7 @@
             background-color: #818078;
         }
 
-        /* (4) 個人紀錄按鈕 -> 維持原本的藍綠色 info 樣式 */
+
         .btn-info {
             background-color: #17a2b8;
             color: white;
@@ -139,8 +139,11 @@
                 <button type="submit" class="logout-btn">🚪 登出系統</button>
             </form>
         {% else %}
-            <span style="color: #6c757d;">👀 目前身分：訪客模式 (作答不留歷史紀錄)</span>
-            <a href="/admin/login/?next=/" class="login-link">🔑 會員登入</a>
+            <span style="color: #6c757d;">👀 目前身分：訪客模式</span>
+            <div>
+                <a href="/admin/login/?next=/" class="login-link" style="margin-right: 5px;">🔑 登入</a>
+                <a href="{% url 'register' %}" class="login-link" style="border-color: #f76868; color: #f76868;">📝 註冊</a>
+            </div>
         {% endif %}
     </div>
 

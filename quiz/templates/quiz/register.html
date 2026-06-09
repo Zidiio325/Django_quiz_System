@@ -1,0 +1,72 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>🔑 註冊新會員</title>
+    <style>
+        body {
+            background-image: url("{% static 'quiz/bg_star.jpg' %}");
+            background-repeat: repeat;
+            background-position: top left;
+            font-family: Arial, sans-serif;
+            max-width: 450px;
+            margin: 60px auto;
+            text-align: center;
+        }
+        .register-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        form p {
+            text-align: left;
+            font-size: 14px;
+            color: #666;
+        }
+        input {
+            width: 90%;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        .btn-submit {
+            background-color: #f76868;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 95%;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .btn-submit:hover { background-color: #e25656; }
+    </style>
+</head>
+<body>
+
+<div class="register-card">
+    <h2>📝 註冊新會員帳號</h2>
+    <form method="POST">
+    {% csrf_token %}
+    {% for field in form %}
+        <div style="text-align: left; margin-bottom: 15px;">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.help_text %}
+                <div style="font-size: 11px; color: #999; margin-top: 2px;">{{ field.help_text }}</div>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn-submit">建立帳號並登入</button>
+    </form>
+    <br>
+    <a href="{% url 'index' %}" style="color: #6c757d; text-decoration: none; font-size: 14px;">返回首頁</a>
+</div>
+
+</body>
+</html>

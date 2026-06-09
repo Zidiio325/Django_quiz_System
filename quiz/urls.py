@@ -34,4 +34,5 @@ urlpatterns = [
     path('wrong-book/review/<int:question_id>/', views.review_wrong_question, name='review_wrong_question'),
     path('history/', views.quiz_history, name='quiz_history'),
     path('questions/', views.question_all, name='question_all'),
+    path('register/', views.register, name='register'),
 ]

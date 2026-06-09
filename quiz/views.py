@@ -254,11 +254,25 @@ def quiz_history(request):
 
 
 def question_all(request):
-    """ 題庫總覽：列出資料庫中所有的題目、選項與解析 (訪客可看) """
-    # 撈出所有題目，並預先載入對應的選項 (優化效能)
+
+
     questions = Question.objects.prefetch_related('choices').all()
 
     return render(request, "quiz/question_list.html", {
         "questions": questions,
         "total_questions": questions.count()
     })
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+
+def register(request):
+    """ 會員註冊功能 """
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('index')
+    else:
+        form = UserCreationForm()
+    return render(request, 'quiz/register.html', {'form': form})
